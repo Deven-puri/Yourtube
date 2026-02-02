@@ -11,6 +11,8 @@ import likeroutes from "./routes/like.js";
 import watchlaterroutes from "./routes/watchlater.js";
 import historyrroutes from "./routes/history.js";
 import commentroutes from "./routes/comment.js";
+import downloadroutes from "./routes/download.js";
+import premiumroutes from "./routes/premium.js";
 dotenv.config();
 const app = express();
 const httpServer = createServer(app);
@@ -42,6 +44,8 @@ app.use("/like", likeroutes);
 app.use("/watch", watchlaterroutes);
 app.use("/history", historyrroutes);
 app.use("/comment", commentroutes);
+app.use("/download", downloadroutes);
+app.use("/premium", premiumroutes);
 const PORT = process.env.PORT || 5000;
 
 // WebRTC Signaling Logic
