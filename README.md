@@ -1,6 +1,6 @@
-# YouTube Clone with VoIP Video Calling
+# YouTube Clone with VoIP Video Calling & Premium Downloads
 
-A full-stack YouTube clone built with Next.js, Express, MongoDB, and featuring real-time WebRTC video calling capabilities.
+A full-stack YouTube clone built with Next.js, Express, MongoDB, and featuring real-time WebRTC video calling capabilities and premium subscription system.
 
 ## Features
 
@@ -16,6 +16,9 @@ A full-stack YouTube clone built with Next.js, Express, MongoDB, and featuring r
 - 🖥️ **Screen Sharing**
 - 🎙️ **Audio/Video Controls**
 - 📹 **Call Recording**
+- 📥 **Video Downloads** (1 per day for free users)
+- 👑 **Premium Subscription** (Unlimited downloads)
+- 💳 **Razorpay Payment Integration**
 
 ## Tech Stack
 
@@ -28,6 +31,7 @@ A full-stack YouTube clone built with Next.js, Express, MongoDB, and featuring r
 - Simple-peer (WebRTC)
 - Firebase Authentication
 - Axios
+- Razorpay Checkout
 
 ### Backend
 - Node.js
@@ -36,12 +40,14 @@ A full-stack YouTube clone built with Next.js, Express, MongoDB, and featuring r
 - Socket.io (for WebRTC signaling)
 - Multer (file uploads)
 - Mongoose
+- Razorpay Payment Gateway
 
 ## Prerequisites
 
 - Node.js (v18 or higher)
 - MongoDB Atlas account
 - Firebase project (for authentication)
+- Razorpay account (for payments)
 - npm or yarn
 
 ## Installation
@@ -65,6 +71,8 @@ Create a `.env` file in the `server` directory:
 ```env
 PORT=5001
 DB_URL=your_mongodb_atlas_connection_string
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ```
 
 ### 3. Frontend Setup
@@ -106,6 +114,37 @@ npm run dev
 
 Frontend will run on `http://localhost:3000`
 
+## Video Download & Premium Features
+
+### Free Users
+- Download 1 video per day
+- Access to basic features
+- View download history
+
+### Premium Subscription
+- **Monthly Plan**: ₹99/month
+- **Yearly Plan**: ₹999/year (save ₹189)
+- **Benefits**:
+  - Unlimited video downloads
+  - HD quality downloads
+  - Priority support
+  - Ad-free experience
+
+### Using Downloads
+1. Click the "Download" button on any video
+2. Free users: 1 download per day
+3. Premium users: Unlimited downloads
+4. View all downloads at `/downloads`
+5. Re-download or remove videos from history
+
+### Upgrading to Premium
+1. Navigate to `/premium` or click "Premium" in sidebar
+2. Choose monthly or yearly plan
+3. Click "Subscribe"
+4. Complete payment via Razorpay (test mode)
+5. Use test card: 4111 1111 1111 1111
+6. Enjoy unlimited downloads!
+
 ## VoIP Video Calling Usage
 
 1. Click the video call icon in the header
@@ -133,23 +172,53 @@ Frontend will run on `http://localhost:3000`
 3. Get your Firebase configuration
 4. Add the configuration to the frontend `.env.local` file
 
+## Razorpay Setup
+
+1. Sign up at [Razorpay Dashboard](https://dashboard.razorpay.com/)
+2. Navigate to Settings → API Keys
+3. Generate **Test Mode** API keys for development
+4. Copy Key ID and Key Secret to backend `.env` file
+5. For production: Switch to Live mode and generate live keys
+
+### Test Payment Cards
+- **Card Number**: 4111 1111 1111 1111
+- **CVV**: Any 3 digits
+- **Expiry**: Any future date
+- **Name**: Any name
+
 ## Project Structure
 
 ```
 ├── server/                 # Backend Express server
 │   ├── controllers/        # Route controllers
+│   │   ├── download.js     # Download logic
+│   │   ├── premium.js      # Premium subscription
+│   │   └── ...
 │   ├── Modals/            # MongoDB models
+│   │   ├── download.js     # Download model
+│   │   ├── Auth.js         # User model (with premium fields)
+│   │   └── ...
 │   ├── routes/            # API routes
+│   │   ├── download.js     # Download routes
+│   │   ├── premium.js      # Premium routes
+│   │   └── ...
 │   ├── filehelper/        # File upload helpers
 │   └── index.js           # Server entry point
 ├── yourtube/              # Frontend Next.js app
 │   ├── src/
 │   │   ├── components/    # React components
+│   │   │   ├── VideoInfo.tsx    # Video player with download
+│   │   │   └── Sidebar.tsx      # Navigation with Downloads/Premium
 │   │   ├── pages/         # Next.js pages
+│   │   │   ├── downloads/       # Downloads page
+│   │   │   ├── premium/         # Premium subscription page
+│   │   │   └── ...
 │   │   ├── lib/           # Utilities and hooks
 │   │   └── styles/        # Global styles
 │   └── public/            # Static assets
-└── README.md
+├── README.md
+├── DOWNLOAD_FEATURE.md    # Detailed download feature docs
+└── VOIP_FEATURE.md        # VoIP feature documentation
 ```
 
 ## Environment Variables
@@ -157,6 +226,8 @@ Frontend will run on `http://localhost:3000`
 ### Backend (.env)
 - `PORT`: Server port (default: 5001)
 - `DB_URL`: MongoDB Atlas connection string
+- `RAZORPAY_KEY_ID`: Razorpay API Key ID
+- `RAZORPAY_KEY_SECRET`: Razorpay API Secret
 
 ### Frontend (.env.local)
 - `NEXT_PUBLIC_BACKEND_URL`: Backend API URL
@@ -173,12 +244,20 @@ Frontend will run on `http://localhost:3000`
 - Can be deployed to Vercel, Netlify, or any Next.js hosting
 - Update `NEXT_PUBLIC_BACKEND_URL` to point to your deployed backend
 - Set all environment variables on the hosting platform
+- **Important**: Switch Razorpay to Live mode for production payments
 
 ## Known Issues
 
 - macOS port 5000 is blocked by AirPlay Receiver - use port 5001 instead
 - Large video uploads may require timeout adjustments
 - Ensure camera/microphone permissions are granted for video calls
+- Download feature requires adequate server storage for video files
+- Razorpay test mode for development - switch to live for production
+
+## Documentation
+
+- [VoIP Feature Documentation](VOIP_FEATURE.md) - Detailed guide for video calling
+- [Download Feature Documentation](DOWNLOAD_FEATURE.md) - Complete guide for downloads & premium
 
 ## Contributing
 
