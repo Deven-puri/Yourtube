@@ -15,7 +15,7 @@ declare global {
 const PremiumPage = () => {
   const router = useRouter();
   const { user } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [selectedPlan, setSelectedPlan] = useState('Silver');
   const [loading, setLoading] = useState(false);
   const [premiumStatus, setPremiumStatus] = useState<any>(null);
 
@@ -119,32 +119,49 @@ const PremiumPage = () => {
 
   const plans = [
     {
-      id: 'monthly',
-      name: 'Monthly',
-      price: '₹99',
+      id: 'Bronze',
+      name: 'Bronze',
+      price: '₹10',
       period: '/month',
+      color: 'from-orange-600 to-amber-700',
+      badge: 'bg-orange-600',
       features: [
-        'Unlimited video downloads',
-        'HD quality downloads',
-        'No ads',
-        'Priority support',
-        'Download history tracking'
+        '7 minutes watch time per day',
+        '1 video download per day',
+        'HD quality streaming',
+        'Ad-supported'
       ]
     },
     {
-      id: 'yearly',
-      name: 'Yearly',
-      price: '₹999',
-      period: '/year',
-      savings: 'Save ₹189',
+      id: 'Silver',
+      name: 'Silver',
+      price: '₹50',
+      period: '/month',
+      popular: true,
+      color: 'from-gray-400 to-gray-600',
+      badge: 'bg-gray-500',
       features: [
-        'All monthly features',
-        'Unlimited video downloads',
-        'HD quality downloads',
-        'No ads',
-        'Priority support',
-        'Download history tracking',
-        '2 months free'
+        '10 minutes watch time per day',
+        '5 video downloads per day',
+        'Full HD quality',
+        'Ad-free experience',
+        'Priority support'
+      ]
+    },
+    {
+      id: 'Gold',
+      name: 'Gold',
+      price: '₹100',
+      period: '/month',
+      color: 'from-yellow-500 to-yellow-700',
+      badge: 'bg-yellow-600',
+      features: [
+        '⭐ Unlimited watch time',
+        '⭐ Unlimited downloads',
+        '⭐ 4K quality streaming',
+        '⭐ Ad-free experience',
+        '⭐ Priority support',
+        '⭐ Exclusive content'
       ]
     }
   ];
@@ -158,22 +175,46 @@ const PremiumPage = () => {
           <div className="flex-1 p-6 ml-64">
             <div className="max-w-4xl mx-auto text-center py-16">
               <Crown className="w-24 h-24 mx-auto mb-6 text-yellow-500" />
-              <h1 className="text-4xl font-bold mb-4">You're a Premium Member!</h1>
+              <h1 className="text-4xl font-bold mb-4">You're on {premiumStatus.planType} Plan!</h1>
               <p className="text-xl text-gray-400 mb-8">
-                Enjoy unlimited downloads and all premium features
+                {premiumStatus.planType === 'Gold' 
+                  ? 'Enjoy unlimited watch time and downloads!' 
+                  : 'Enjoying premium features'}
               </p>
               <div className="bg-gray-900 rounded-lg p-6 mb-8">
-                <p className="text-lg mb-2">Premium valid until:</p>
-                <p className="text-2xl font-semibold text-yellow-500">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-lg mb-2">Current Plan:</p>
+                    <p className="text-3xl font-semibold text-yellow-500">
+                      {premiumStatus.planType}
+                    </p>
+                  </div>
+                  <Crown className="w-16 h-16 text-yellow-500" />
+                </div>
+                
+                <p className="text-lg mb-2">Plan valid until:</p>
+                <p className="text-xl font-semibold text-yellow-500 mb-2">
                   {new Date(premiumStatus.premiumExpiry).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
                   })}
                 </p>
-                <p className="text-gray-400 mt-2">
+                <p className="text-gray-400 mb-4">
                   {premiumStatus.daysRemaining} days remaining
                 </p>
+                
+                {premiumStatus.planType !== 'Gold' && (
+                  <button
+                    onClick={() => {
+                      setPremiumStatus(null);
+                      setSelectedPlan('Gold');
+                    }}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-700 rounded-lg font-semibold hover:opacity-90 transition mt-4"
+                  >
+                    ⭐ Upgrade to Gold (Unlimited)
+                  </button>
+                )}
               </div>
               <button
                 onClick={() => router.push('/downloads')}
@@ -207,49 +248,59 @@ const PremiumPage = () => {
             </div>
 
             {/* Benefits */}
-            <div className="grid md:grid-cols-3 gap-6 mb-16">
+            <div className="grid md:grid-cols-4 gap-6 mb-16">
               <div className="bg-gray-900 rounded-lg p-6 text-center">
-                <Download className="w-12 h-12 mx-auto mb-4 text-blue-500" />
-                <h3 className="text-lg font-semibold mb-2">Unlimited Downloads</h3>
-                <p className="text-gray-400">
-                  Download as many videos as you want, anytime
+                <Clock className="w-12 h-12 mx-auto mb-4 text-blue-500" />
+                <h3 className="text-lg font-semibold mb-2">Extended Watch Time</h3>
+                <p className="text-gray-400 text-sm">
+                  Watch more videos every day
+                </p>
+              </div>
+              <div className="bg-gray-900 rounded-lg p-6 text-center">
+                <Download className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                <h3 className="text-lg font-semibold mb-2">More Downloads</h3>
+                <p className="text-gray-400 text-sm">
+                  Download videos for offline viewing
                 </p>
               </div>
               <div className="bg-gray-900 rounded-lg p-6 text-center">
                 <Zap className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
-                <h3 className="text-lg font-semibold mb-2">HD Quality</h3>
-                <p className="text-gray-400">
-                  Download videos in the highest quality available
+                <h3 className="text-lg font-semibold mb-2">Better Quality</h3>
+                <p className="text-gray-400 text-sm">
+                  Stream in HD, Full HD, or 4K
                 </p>
               </div>
               <div className="bg-gray-900 rounded-lg p-6 text-center">
-                <Shield className="w-12 h-12 mx-auto mb-4 text-green-500" />
-                <h3 className="text-lg font-semibold mb-2">Priority Support</h3>
-                <p className="text-gray-400">
-                  Get fast and priority customer support
+                <Shield className="w-12 h-12 mx-auto mb-4 text-purple-500" />
+                <h3 className="text-lg font-semibold mb-2">Ad-Free</h3>
+                <p className="text-gray-400 text-sm">
+                  Enjoy uninterrupted viewing
                 </p>
               </div>
             </div>
 
             {/* Pricing Plans */}
-            <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="grid md:grid-cols-3 gap-8 mb-8">
               {plans.map((plan) => (
                 <div
                   key={plan.id}
-                  className={`relative bg-gray-900 rounded-lg p-8 cursor-pointer transition ${
+                  className={`relative bg-gray-900 rounded-lg p-8 cursor-pointer transition transform hover:scale-105 ${
                     selectedPlan === plan.id
-                      ? 'ring-2 ring-purple-500'
+                      ? 'ring-2 ring-purple-500 shadow-xl'
                       : 'hover:bg-gray-800'
-                  }`}
+                  } ${plan.popular ? 'border-2 border-yellow-500' : ''}`}
                   onClick={() => setSelectedPlan(plan.id)}
                 >
-                  {plan.savings && (
-                    <div className="absolute top-4 right-4 bg-green-600 text-white text-xs px-3 py-1 rounded-full">
-                      {plan.savings}
+                  {plan.popular && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-black text-xs px-4 py-1 rounded-full font-bold">
+                      MOST POPULAR
                     </div>
                   )}
+                  
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-2xl font-bold">{plan.name}</h3>
+                    <div className={`px-4 py-2 rounded-lg bg-gradient-to-r ${plan.color} text-white font-bold text-lg`}>
+                      {plan.name}
+                    </div>
                     <div className={`w-6 h-6 rounded-full border-2 ${
                       selectedPlan === plan.id
                         ? 'bg-purple-600 border-purple-600'
@@ -260,15 +311,17 @@ const PremiumPage = () => {
                       )}
                     </div>
                   </div>
+                  
                   <div className="mb-6">
                     <span className="text-4xl font-bold">{plan.price}</span>
                     <span className="text-gray-400">{plan.period}</span>
                   </div>
+                  
                   <ul className="space-y-3">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-center gap-3">
                         <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                        <span className="text-gray-300">{feature}</span>
+                        <span className="text-gray-300 text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -283,10 +336,13 @@ const PremiumPage = () => {
                 disabled={loading}
                 className="px-12 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-semibold text-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : `Subscribe to ${selectedPlan === 'monthly' ? 'Monthly' : 'Yearly'} Plan`}
+                {loading ? 'Processing...' : `Upgrade to ${selectedPlan} Plan`}
               </button>
               <p className="text-gray-500 text-sm mt-4">
                 Secure payment powered by Razorpay • Test Mode Active
+              </p>
+              <p className="text-gray-400 text-xs mt-2">
+                Email invoice will be sent after successful payment
               </p>
             </div>
           </div>
