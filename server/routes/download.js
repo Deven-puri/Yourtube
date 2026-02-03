@@ -1,10 +1,11 @@
-const express = require("express");
-const {
+
+import express from "express";
+import {
     checkDownloadLimit,
     downloadVideo,
     getDownloads,
     deleteDownload
-} = require("../controllers/download");
+} from "../controllers/download.js";
 
 const router = express.Router();
 
@@ -13,4 +14,4 @@ router.post("/download/:userId/:videoId", downloadVideo);
 router.get("/history/:userId", getDownloads);
 router.delete("/delete/:downloadId", deleteDownload);
 
-module.exports = router;
+export default router;

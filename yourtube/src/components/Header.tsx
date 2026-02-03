@@ -1,4 +1,4 @@
-import { Bell, Menu, Mic, Search, User, VideoIcon } from "lucide-react";
+import { Bell, Menu, Mic, Search, User, VideoIcon, Sun, Moon } from "lucide-react";
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -15,9 +15,11 @@ import Channeldialogue from "./channeldialogue";
 import CallStarter from "./CallStarter";
 import { useRouter } from "next/router";
 import { useUser } from "@/lib/AuthContext";
+import { useTheme } from "@/lib/ThemeContext";
 
 const Header = () => {
   const { user, logout, handlegooglesignin } = useUser();
+  const { theme, location } = useTheme();
   // const user: any = {
   //   id: "1",
   //   name: "John Doe",
@@ -39,7 +41,9 @@ const Header = () => {
     }
   };
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between gap-2 border-b bg-white px-2 py-2 sm:gap-4 sm:px-4">
+    <header className={`sticky top-0 z-50 flex items-center justify-between gap-2 border-b px-2 py-2 sm:gap-4 sm:px-4 ${
+      theme === 'light' ? 'bg-white border-gray-200' : 'bg-gray-800 border-gray-700'
+    }`}>
       <div className="flex items-center gap-2 sm:gap-4">
         <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
           <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -79,6 +83,28 @@ const Header = () => {
         </Button>
       </form>
       <div className="flex items-center gap-1 sm:gap-2">
+        {/* Theme Indicator */}
+        <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
+          theme === 'light' 
+            ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' 
+            : 'bg-blue-900 text-blue-200 border border-blue-700'
+        }`}>
+          {theme === 'light' ? (
+            <>
+              <Sun className="h-3.5 w-3.5" />
+              <span>Light</span>
+            </>
+          ) : (
+            <>
+              <Moon className="h-3.5 w-3.5" />
+              <span>Dark</span>
+            </>
+          )}
+          {location && (
+            <span className="ml-1 opacity-75">• {location.state}</span>
+          )}
+        </div>
+        
         {user ? (
           <>
             <CallStarter variant="ghost" size="icon" className="hidden h-9 w-9 sm:flex sm:h-10 sm:w-10" />

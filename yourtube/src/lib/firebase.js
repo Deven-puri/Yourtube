@@ -1,6 +1,14 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApp, getApps } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  signInWithEmailLink,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink
+} from "firebase/auth";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -14,8 +22,23 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-export { auth, provider };
+// Initialize Firebase only on client side
+let app;
+let auth;
+let provider;
+
+if (typeof window !== 'undefined') {
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  provider = new GoogleAuthProvider();
+}
+
+export { 
+  auth, 
+  provider,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  signInWithEmailLink,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink
+};

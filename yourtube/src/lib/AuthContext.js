@@ -52,6 +52,11 @@ export const UserProvider = ({ children }) => {
       }
     }
 
+    // Only set up auth listener on client side
+    if (typeof window === "undefined" || !auth) {
+      return;
+    }
+
     const unsubcribe = onAuthStateChanged(auth, async (firebaseuser) => {
       if (firebaseuser) {
         try {
@@ -79,3 +84,5 @@ export const UserProvider = ({ children }) => {
 };
 
 export const useUser = () => useContext(UserContext);
+export const useAuth = () => useContext(UserContext); // Alias for compatibility
+

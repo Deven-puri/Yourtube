@@ -20,7 +20,7 @@ import path from "path";
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:5001'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5001'],
   credentials: true,
   optionsSuccessStatus: 200
 };

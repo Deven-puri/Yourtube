@@ -1,14 +1,14 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const downloadSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "user",
         required: true
     },
     videoId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Video",
+        ref: "videofiles",
         required: true
     },
     downloadedAt: {
@@ -21,4 +21,4 @@ const downloadSchema = new mongoose.Schema({
 downloadSchema.index({ userId: 1, downloadedAt: -1 });
 downloadSchema.index({ userId: 1, videoId: 1 });
 
-module.exports = mongoose.model("Download", downloadSchema);
+export default mongoose.model("Download", downloadSchema);

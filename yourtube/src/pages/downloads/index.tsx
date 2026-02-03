@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import axios from '../lib/axiosinstance';
-import { useAuth } from '../lib/AuthContext';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import axios from '../../lib/axiosinstance';
+import { useAuth } from '../../lib/AuthContext';
+import Sidebar from '../../components/Sidebar';
+import Header from '../../components/Header';
 import { Download, Trash2, Play, Calendar } from 'lucide-react';
 
 const DownloadsPage = () => {

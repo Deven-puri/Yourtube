@@ -5,7 +5,7 @@ import Videopplayer from "@/components/Videopplayer";
 import axiosInstance from "@/lib/axiosinstance";
 import { notFound } from "next/navigation";
 import { useRouter } from "next/router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 
 const index = () => {
   const router = useRouter();
@@ -13,6 +13,7 @@ const index = () => {
   const [videos, setvideo] = useState<any>(null);
   const [video, setvide] = useState<any>(null);
   const [loading, setloading] = useState(true);
+  const commentsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const fetchvideo = async () => {
       if (!id || typeof id !== "string") return;
@@ -66,14 +67,27 @@ const index = () => {
   if (!videos) {
     return <div>Video not found</div>;
   }
+
+  const handleOpenComments = () => {
+    if (commentsRef.current) {
+      commentsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto p-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
-            <Videopplayer video={videos} />
+            <Videopplayer 
+              video={videos} 
+              relatedVideos={video}
+              onOpenComments={handleOpenComments}
+            />
             <VideoInfo video={videos} />
-            <Comments videoId={id} />
+            <div ref={commentsRef} id="comments-section">
+              <Comments videoId={id} />
+            </div>
           </div>
           <div className="space-y-4">
             <RelatedVideos videos={video} />

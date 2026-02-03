@@ -1,11 +1,11 @@
-const Download = require("../Modals/download");
-const User = require("../Modals/Auth");
-const Video = require("../Modals/video");
-const path = require("path");
-const fs = require("fs");
+import Download from "../Modals/download.js";
+import User from "../Modals/Auth.js";
+import Video from "../Modals/video.js";
+import path from "path";
+import fs from "fs";
 
 // Check if user can download (premium or within daily limit)
-exports.checkDownloadLimit = async (req, res) => {
+export const checkDownloadLimit = async (req, res) => {
     try {
         const userId = req.params.userId;
         const user = await User.findById(userId);
@@ -55,7 +55,7 @@ exports.checkDownloadLimit = async (req, res) => {
 };
 
 // Download video
-exports.downloadVideo = async (req, res) => {
+export const downloadVideo = async (req, res) => {
     try {
         const { userId, videoId } = req.params;
 
@@ -126,7 +126,7 @@ exports.downloadVideo = async (req, res) => {
 };
 
 // Get user's download history
-exports.getDownloads = async (req, res) => {
+export const getDownloads = async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -148,7 +148,7 @@ exports.getDownloads = async (req, res) => {
 };
 
 // Delete download record
-exports.deleteDownload = async (req, res) => {
+export const deleteDownload = async (req, res) => {
     try {
         const { downloadId } = req.params;
 

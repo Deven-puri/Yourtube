@@ -1,11 +1,12 @@
-const express = require("express");
-const {
+
+import express from "express";
+import {
     createPremiumOrder,
     verifyPayment,
     checkPremiumStatus,
     getWatchTimeStatus,
     updateWatchTime
-} = require("../controllers/premium");
+} from "../controllers/premium.js";
 
 const router = express.Router();
 
@@ -15,4 +16,4 @@ router.get("/status/:userId", checkPremiumStatus);
 router.get("/watch-time/:userId", getWatchTimeStatus);
 router.post("/watch-time/:userId", updateWatchTime);
 
-module.exports = router;
+export default router;

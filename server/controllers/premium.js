@@ -1,7 +1,7 @@
-const User = require("../Modals/Auth");
-const Razorpay = require("razorpay");
-const crypto = require("crypto");
-const { sendInvoiceEmail } = require("../services/emailService");
+import User from "../Modals/Auth.js";
+import Razorpay from "razorpay";
+import crypto from "crypto";
+import { sendInvoiceEmail } from "../services/emailService.js";
 
 // Initialize Razorpay (use test keys for now)
 const razorpay = new Razorpay({
@@ -18,9 +18,11 @@ const PLANS = {
 };
 
 // Create Razorpay order for premium subscription
-exports.createPremiumOrder = async (req, res) => {
+export const createPremiumOrder = async (req, res) => {
     try {
         const { userId, plan } = req.body; // plan: Bronze, Silver, Gold
+
+        console.log('Create order request:', { userId, plan });
 
         const user = await User.findById(userId);
         if (!user) {
@@ -35,6 +37,23 @@ exports.createPremiumOrder = async (req, res) => {
 
         const amount = planConfig.price;
 
+        // Check if using placeholder keys (mock mode for development)
+        const isMockMode = process.env.RAZORPAY_KEY_ID === 'rzp_test_sample_key' || 
+                           process.env.RAZORPAY_KEY_ID?.includes('sample');
+
+        if (isMockMode) {
+            console.log('🔧 MOCK MODE: Using simulated payment (Razorpay not configured)');
+            const mockOrderId = `mock_order_${userId}_${Date.now()}`;
+            
+            return res.status(200).json({
+                orderId: mockOrderId,
+                amount,
+                currency: "INR",
+                keyId: 'rzp_test_mock',
+                mockMode: true,
+            });
+        }
+
         // Create Razorpay order
         const options = {
             amount: amount, // amount in paise
@@ -47,7 +66,11 @@ exports.createPremiumOrder = async (req, res) => {
             }
         };
 
+        console.log('Creating Razorpay order with options:', options);
+
         const order = await razorpay.orders.create(options);
+
+        console.log('Razorpay order created:', order.id);
 
         res.status(200).json({
             orderId: order.id,
@@ -57,12 +80,13 @@ exports.createPremiumOrder = async (req, res) => {
         });
 
     } catch (error) {
+        console.error('Error creating Razorpay order:', error);
         res.status(500).json({ message: "Error creating order", error: error.message });
     }
 };
 
 // Verify payment and activate premium
-exports.verifyPayment = async (req, res) => {
+export const verifyPayment = async (req, res) => {
     try {
         const {
             razorpay_order_id,
@@ -72,20 +96,27 @@ exports.verifyPayment = async (req, res) => {
             plan
         } = req.body;
 
-        // Verify signature
-        const body = razorpay_order_id + "|" + razorpay_payment_id;
-        const expectedSignature = crypto
-            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "sample_secret")
-            .update(body.toString())
-            .digest("hex");
+        // Check if this is mock mode
+        const isMockMode = razorpay_order_id?.startsWith('mock_order_');
 
-        const isAuthentic = expectedSignature === razorpay_signature;
+        if (isMockMode) {
+            console.log('🔧 MOCK MODE: Skipping payment verification, activating plan directly');
+        } else {
+            // Verify signature for real Razorpay payments
+            const body = razorpay_order_id + "|" + razorpay_payment_id;
+            const expectedSignature = crypto
+                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "sample_secret")
+                .update(body.toString())
+                .digest("hex");
 
-        if (!isAuthentic) {
-            return res.status(400).json({ 
-                success: false,
-                message: "Payment verification failed" 
-            });
+            const isAuthentic = expectedSignature === razorpay_signature;
+
+            if (!isAuthentic) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: "Payment verification failed" 
+                });
+            }
         }
 
         // Activate plan for user
@@ -147,7 +178,7 @@ exports.verifyPayment = async (req, res) => {
 };
 
 // Check premium status
-exports.checkPremiumStatus = async (req, res) => {
+export const checkPremiumStatus = async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -175,7 +206,7 @@ exports.checkPremiumStatus = async (req, res) => {
 };
 
 // Get watch time status
-exports.getWatchTimeStatus = async (req, res) => {
+export const getWatchTimeStatus = async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -217,7 +248,7 @@ exports.getWatchTimeStatus = async (req, res) => {
 };
 
 // Update watch time
-exports.updateWatchTime = async (req, res) => {
+export const updateWatchTime = async (req, res) => {
     try {
         const { userId } = req.params;
         const { watchedSeconds } = req.body;

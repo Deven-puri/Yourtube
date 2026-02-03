@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 // Create transporter with Gmail (use app-specific password)
 const transporter = nodemailer.createTransport({
@@ -229,7 +229,7 @@ const sendUpgradeConfirmation = async (userData) => {
     }
 };
 
-module.exports = {
+export {
     sendInvoiceEmail,
     sendUpgradeConfirmation
 };

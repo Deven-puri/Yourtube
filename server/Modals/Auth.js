@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 const userschema = mongoose.Schema({
   email: { type: String, required: true },
   name: { type: String },
+  phone: { type: String, default: null },
+  firebaseUid: { type: String, default: null },
   channelname: { type: String },
   description: { type: String },
   image: { type: String },
