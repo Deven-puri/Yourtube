@@ -12,12 +12,17 @@ export const requestOTP = async (req, res) => {
   const { email, phone, state } = req.body;
 
   try {
+    console.log('📥 OTP Request received:', { email, phone, state });
+    
     const isSouthIndia = SOUTH_INDIAN_STATES.includes(state);
     
     // South India → Email OTP, Others → Phone OTP
     if (isSouthIndia && email) {
+      console.log('📧 Sending Email OTP for South India...');
       const result = await sendEmailOTP(email);
+      console.log('✅ Email OTP result:', result);
       return res.status(200).json({ 
+        success: true,
         ...result, 
         authType: 'email',
         message: 'OTP sent to your email address',
@@ -25,22 +30,28 @@ export const requestOTP = async (req, res) => {
         ...(process.env.NODE_ENV === 'development' && result.otp && { otp: result.otp })
       });
     } else if (!isSouthIndia && phone) {
+      console.log('📱 Sending Phone OTP for other regions...');
       const result = await sendPhoneOTP(phone);
+      console.log('✅ Phone OTP result:', result);
       return res.status(200).json({ 
+        success: true,
         ...result, 
         authType: 'phone',
         message: 'OTP sent to your phone number (simulated)',
         // In development, return OTP for testing
-        ...(process.env.NODE_ENV === 'development' && result.otp && { otp: result.otp })
+        ...(result.otp && { otp: result.otp })
       });
     } else {
+      console.log('❌ Invalid request - missing email or phone');
       return res.status(400).json({ 
+        success: false,
         message: 'Invalid request. Provide email for South India or phone for other regions.' 
       });
     }
   } catch (error) {
-    console.error('Error sending OTP:', error);
+    console.error('❌ Error sending OTP:', error);
     return res.status(500).json({ 
+      success: false,
       message: 'Failed to send OTP',
       error: error.message 
     });

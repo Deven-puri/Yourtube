@@ -13,6 +13,8 @@ import historyrroutes from "./routes/history.js";
 import commentroutes from "./routes/comment.js";
 import downloadroutes from "./routes/download.js";
 import premiumroutes from "./routes/premium.js";
+import subscriptionroutes from "./routes/subscription.js";
+import { initGridFS } from "./gridfs/gridfsConfig.js";
 dotenv.config();
 const app = express();
 const httpServer = createServer(app);
@@ -46,7 +48,8 @@ app.use("/history", historyrroutes);
 app.use("/comment", commentroutes);
 app.use("/download", downloadroutes);
 app.use("/premium", premiumroutes);
-const PORT = process.env.PORT || 5000;
+app.use("/subscription", subscriptionroutes);
+const PORT = process.env.PORT || 5001;
 
 // WebRTC Signaling Logic
 const users = {}; // userId -> socketId mapping
@@ -121,6 +124,8 @@ mongoose
   .connect(DBURL)
   .then(() => {
     console.log("Mongodb connected");
+    // Initialize GridFS after MongoDB connection
+    initGridFS();
   })
   .catch((error) => {
     console.log(error);

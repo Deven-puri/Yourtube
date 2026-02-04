@@ -10,7 +10,7 @@ interface VideoPlayerProps {
   video: {
     _id: string;
     videotitle: string;
-    filepath: string;
+    filepath?: string;
   };
   relatedVideos?: Array<{
     _id: string;
@@ -285,7 +285,7 @@ export default function VideoPlayer({ video, relatedVideos = [], onOpenComments 
           onPause={handlePause}
         >
           <source
-            src={`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/${video?.filepath}`}
+            src={`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001'}/video/stream/${video?._id}`}
             type="video/mp4"
           />
           Your browser does not support the video tag.

@@ -13,7 +13,10 @@ const VideoUploader = ({ channelId, channelName }: any) => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoTitle, setVideoTitle] = useState("");
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [videoDuration, setVideoDuration] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoPreviewRef = useRef<HTMLVideoElement>(null);
+  
   const handlefilechange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -31,6 +34,15 @@ const VideoUploader = ({ channelId, channelName }: any) => {
       if (!videoTitle) {
         setVideoTitle(filename);
       }
+      
+      // Get video duration
+      const videoUrl = URL.createObjectURL(file);
+      const videoElement = document.createElement('video');
+      videoElement.src = videoUrl;
+      videoElement.onloadedmetadata = () => {
+        setVideoDuration(Math.floor(videoElement.duration));
+        URL.revokeObjectURL(videoUrl);
+      };
     }
   };
   const resetForm = () => {
@@ -39,6 +51,7 @@ const VideoUploader = ({ channelId, channelName }: any) => {
     setIsUploading(false);
     setUploadProgress(0);
     setUploadComplete(false);
+    setVideoDuration(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -58,6 +71,7 @@ const VideoUploader = ({ channelId, channelName }: any) => {
     formdata.append("videotitle", videoTitle);
     formdata.append("videochanel", channelName);
     formdata.append("uploader", channelId);
+    formdata.append("duration", videoDuration.toString());
     console.log(formdata)
     try {
       setIsUploading(true);

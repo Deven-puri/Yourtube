@@ -26,6 +26,8 @@ const VideoInfo = ({ video }: any) => {
   const [downloading, setDownloading] = useState(false);
   const [downloadLimit, setDownloadLimit] = useState<any>(null);
   const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriberCount, setSubscriberCount] = useState(0);
   const router = useRouter();
 
   // const user: any = {
@@ -43,8 +45,86 @@ const VideoInfo = ({ video }: any) => {
     // Check download limit when component mounts
     if (user) {
       checkDownloadLimit();
+      checkSubscriptionStatus();
     }
+    
+    // Get subscriber count
+    fetchSubscriberCount();
   }, [video, user]);
+
+  const checkSubscriptionStatus = async () => {
+    if (!user || !video.uploader) return;
+    try {
+      const res = await axiosInstance.get(`/subscription/check/${user._id}/${video.uploader}`);
+      setIsSubscribed(res.data.isSubscribed);
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
+
+  const fetchSubscriberCount = async () => {
+    if (!video.uploader) return;
+    try {
+      const res = await axiosInstance.get(`/subscription/count/${video.uploader}`);
+      setSubscriberCount(res.data.count);
+    } catch (error) {
+      console.error('Error fetching subscriber count:', error);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      alert('Please sign in to subscribe');
+      return;
+    }
+    
+    // Check if trying to subscribe to own channel
+    if (user._id === video.uploader) {
+      alert('You cannot subscribe to your own channel');
+      return;
+    }
+    
+    try {
+      const res = await axiosInstance.post(`/subscription/${video.uploader}`, {
+        userId: user._id
+      });
+      
+      setIsSubscribed(res.data.subscribed);
+      setSubscriberCount(prev => res.data.subscribed ? prev + 1 : prev - 1);
+    } catch (error: any) {
+      console.error('Error toggling subscription:', error);
+      const errorMessage = error.response?.data?.message || 'Error updating subscription. Please try again.';
+      alert(errorMessage);
+    }
+  };
+
+  const handleShare = async () => {
+    const videoUrl = window.location.href;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: video.videotitle,
+          text: `Check out this video: ${video.videotitle}`,
+          url: videoUrl,
+        });
+      } catch (error) {
+        if (error instanceof Error && error.name !== 'AbortError') {
+          copyToClipboard(videoUrl);
+        }
+      }
+    } else {
+      copyToClipboard(videoUrl);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Link copied to clipboard!');
+    }).catch(() => {
+      alert('Failed to copy link');
+    });
+  };
 
   const checkDownloadLimit = async () => {
     try {
@@ -193,9 +273,16 @@ const VideoInfo = ({ video }: any) => {
           </Avatar>
           <div>
             <h3 className="font-medium">{video.videochanel}</h3>
-            <p className="text-sm text-gray-600">1.2M subscribers</p>
+            <p className="text-sm text-gray-600">
+              {subscriberCount.toLocaleString()} subscriber{subscriberCount !== 1 ? 's' : ''}
+            </p>
           </div>
-          <Button className="ml-4">Subscribe</Button>
+          <Button 
+            className={`ml-4 ${isSubscribed ? 'bg-gray-200 text-black hover:bg-gray-300' : ''}`}
+            onClick={handleSubscribe}
+          >
+            {isSubscribed ? 'Subscribed' : 'Subscribe'}
+          </Button>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-gray-100 rounded-full">
@@ -242,6 +329,7 @@ const VideoInfo = ({ video }: any) => {
             variant="ghost"
             size="sm"
             className="bg-gray-100 rounded-full"
+            onClick={handleShare}
           >
             <Share className="w-5 h-5 mr-2" />
             Share

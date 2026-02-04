@@ -106,16 +106,10 @@ export const downloadVideo = async (req, res) => {
         });
         await download.save();
 
-        // Return video file path for download
-        const videoPath = path.join(__dirname, "..", "uploads", video.videolink);
-        
-        if (!fs.existsSync(videoPath)) {
-            return res.status(404).json({ message: "Video file not found on server" });
-        }
-
+        // Return video streaming URL for download (using GridFS)
         res.status(200).json({
             message: "Download recorded successfully",
-            videoUrl: `/uploads/${video.videolink}`,
+            videoUrl: `/video/stream/${videoId}`,
             videoTitle: video.videotitle,
             downloadId: download._id
         });
