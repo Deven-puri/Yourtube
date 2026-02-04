@@ -10,7 +10,7 @@ import axiosInstance from '@/lib/axiosinstance';
 
 export default function SignIn() {
   const router = useRouter();
-  const { handlegooglesignin } = useUser();
+  const { handlegooglesignin, login } = useUser();
   
   // State
   const [loading, setLoading] = useState(false);
@@ -186,10 +186,11 @@ export default function SignIn() {
       const response = await axiosInstance.post('/user/verify-otp', payload);
       
       if (response.data.result) {
-        // Store user data
-        localStorage.setItem('Profile', JSON.stringify(response.data.result));
+        // Use AuthContext login method to properly set user state
+        login(response.data.result);
         toast.success(response.data.message);
-        setTimeout(() => router.push("/"), 100);
+        // Navigate to home page
+        router.push("/");
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Verification failed');

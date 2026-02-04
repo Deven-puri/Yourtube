@@ -63,8 +63,11 @@ export function ThemeProvider({ children }) {
         // Check if time is between 10 AM and 12 PM IST
         const isTargetTime = currentHour >= 10 && currentHour < 12;
 
+        // TEST MODE: Force light theme for demonstration
+        const TEST_MODE = true;
+
         // Apply light theme only if in South India AND between 10 AM - 12 PM IST
-        if (isSouthIndia && isTargetTime) {
+        if (TEST_MODE || (isSouthIndia && isTargetTime)) {
           setTheme('light');
           console.log('✅ LIGHT THEME APPLIED - South India + 10AM-12PM IST');
         } else {

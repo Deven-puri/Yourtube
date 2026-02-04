@@ -76,10 +76,11 @@ export const verifyOTPAndLogin = async (req, res) => {
       // Create new user
       const userData = {
         name: name || 'User',
-        image: 'https://github.com/shadcn.png'
+        image: 'https://github.com/shadcn.png',
+        // Email is required by schema, so use phone@placeholder if only phone provided
+        email: email || `${phone}@phone.user`
       };
       
-      if (email) userData.email = email;
       if (phone) userData.phone = phone;
       
       const newUser = await users.create(userData);
