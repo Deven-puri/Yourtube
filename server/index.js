@@ -52,33 +52,52 @@ app.use("/subscription", subscriptionroutes);
 const PORT = process.env.PORT || 5001;
 
 // WebRTC Signaling Logic
-const users = {}; // userId -> socketId mapping
-const socketToRoom = {}; // socketId -> roomId mapping
+const rooms = {}; // roomId -> array of users
 
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
 
   // User joins a call room
   socket.on('join-room', ({ roomId, userId }) => {
-    if (!users[roomId]) {
-      users[roomId] = [];
+    // Initialize room if it doesn't exist
+    if (!rooms[roomId]) {
+      rooms[roomId] = [];
     }
     
-    users[roomId].push({ userId, socketId: socket.id });
-    socketToRoom[socket.id] = roomId;
+    // Check if user already in room (prevent duplicates)
+    const existingUser = rooms[roomId].find(u => u.socketId === socket.id);
+    if (existingUser) {
+      return;
+    }
     
-    // Get other users in the room
-    const otherUsers = users[roomId].filter(user => user.socketId !== socket.id);
-    
+    // Add user to room
+    rooms[roomId].push({ userId, socketId: socket.id });
     socket.join(roomId);
+    
+    // Get other users in the room (exclude current user)
+    const otherUsers = rooms[roomId].filter(user => user.socketId !== socket.id);
+    
+    // Send list of other users to the new joiner
     socket.emit('all-users', otherUsers);
     
-    console.log(`User ${userId} joined room ${roomId}`);
   });
 
   // WebRTC signaling - sending offer
   socket.on('sending-signal', ({ userToSignal, callerId, signal }) => {
-    io.to(userToSignal).emit('user-joined', { signal, callerId });
+    
+    // Find the caller's userId from rooms
+    let callerUserId = null;
+    Object.values(rooms).forEach(room => {
+      const caller = room.find(user => user.socketId === socket.id);
+      if (caller) {
+        callerUserId = caller.userId;
+      }
+    });
+    
+    io.to(userToSignal).emit('user-joined', { 
+      signal, 
+      callerId,
+      userId: callerUserId 
+    });
   });
 
   // WebRTC signaling - returning answer
@@ -98,35 +117,36 @@ io.on('connection', (socket) => {
 
   // User leaves call
   socket.on('disconnect', () => {
-    const roomId = socketToRoom[socket.id];
     
-    if (roomId && users[roomId]) {
-      users[roomId] = users[roomId].filter(user => user.socketId !== socket.id);
+    // Find and remove user from all rooms
+    Object.keys(rooms).forEach(roomId => {
+      const userIndex = rooms[roomId].findIndex(user => user.socketId === socket.id);
       
-      if (users[roomId].length === 0) {
-        delete users[roomId];
-      } else {
+      if (userIndex !== -1) {
+        rooms[roomId].splice(userIndex, 1);
+        
+        // Notify others in the room
         socket.to(roomId).emit('user-left', { userId: socket.id });
+        
+        
+        // Clean up empty rooms
+        if (rooms[roomId].length === 0) {
+          delete rooms[roomId];
+        }
       }
-    }
-    
-    delete socketToRoom[socket.id];
-    console.log('User disconnected:', socket.id);
+    });
   });
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`server running on port ${PORT}`);
 });
 
 const DBURL = process.env.DB_URL;
 mongoose
   .connect(DBURL)
   .then(() => {
-    console.log("Mongodb connected");
     // Initialize GridFS after MongoDB connection
     initGridFS();
   })
   .catch((error) => {
-    console.log(error);
   });

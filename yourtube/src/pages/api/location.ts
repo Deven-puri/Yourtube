@@ -22,7 +22,6 @@ export default async function handler(
 
     // For localhost/development, return a test location
     if (!ip || ip === '::1' || ip === '127.0.0.1' || ip?.includes('localhost')) {
-      console.log('Local development detected, using default location');
       return res.status(200).json({
         state: 'Karnataka',
         country: 'India',
@@ -71,7 +70,6 @@ export default async function handler(
 
     return res.status(200).json(locationData);
   } catch (error: any) {
-    console.error('Error fetching location:', error.message || error);
     
     // Return a default location on error (South India for demo purposes)
     return res.status(200).json({

@@ -36,9 +36,7 @@ export function ThemeProvider({ children }) {
               longitude
             };
             
-            console.log('✅ Real location detected for theme:', locationData);
           } catch (geoError) {
-            console.log('📡 Geolocation failed, using IP fallback for theme');
             const response = await fetch('/api/location');
             locationData = await response.json();
           }
@@ -69,14 +67,11 @@ export function ThemeProvider({ children }) {
         // Apply light theme only if in South India AND between 10 AM - 12 PM IST
         if (TEST_MODE || (isSouthIndia && isTargetTime)) {
           setTheme('light');
-          console.log('✅ LIGHT THEME APPLIED - South India + 10AM-12PM IST');
         } else {
           setTheme('dark');
-          console.log('🌙 DARK THEME APPLIED - ' + 
             (!isSouthIndia ? 'Not South India' : 'Time not 10AM-12PM IST'));
         }
 
-        console.log('🎨 Theme Logic:', {
           state: locationData.state,
           isSouthIndia,
           istHour: currentHour,
@@ -86,7 +81,6 @@ export function ThemeProvider({ children }) {
           appliedTheme: (isSouthIndia && isTargetTime) ? 'light' : 'dark'
         });
       } catch (error) {
-        console.error('Error determining theme:', error);
         setTheme('dark'); // Default to dark theme
       } finally {
         setLoading(false);

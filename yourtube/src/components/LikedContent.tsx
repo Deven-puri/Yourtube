@@ -34,7 +34,6 @@ export default function LikedVideosContent() {
 
       setLikedVideos(likedData.data);
     } catch (error) {
-      console.error("Error loading liked videos:", error);
     } finally {
       setLoading(false);
     }
@@ -44,10 +43,8 @@ export default function LikedVideosContent() {
     if (!user) return;
 
     try {
-      console.log("Unliking video:", videoId, "for user:", user.id);
       setLikedVideos(likedVideos.filter((item) => item._id !== likedVideoId));
     } catch (error) {
-      console.error("Error unliking video:", error);
     }
   };
 

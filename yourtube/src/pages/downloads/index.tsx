@@ -28,7 +28,6 @@ const DownloadsPage = () => {
       const response = await axios.get(`/download/history/${user._id}`);
       setDownloads(response.data.downloads);
     } catch (error) {
-      console.error('Error fetching downloads:', error);
     } finally {
       setLoading(false);
     }
@@ -39,7 +38,6 @@ const DownloadsPage = () => {
       const response = await axios.get(`/premium/status/${user._id}`);
       setIsPremium(response.data.isPremium);
     } catch (error) {
-      console.error('Error checking premium status:', error);
     }
   };
 
@@ -48,7 +46,6 @@ const DownloadsPage = () => {
       await axios.delete(`/download/delete/${downloadId}`);
       setDownloads(downloads.filter(d => d._id !== downloadId));
     } catch (error) {
-      console.error('Error deleting download:', error);
     }
   };
 
@@ -66,7 +63,6 @@ const DownloadsPage = () => {
       link.click();
       link.remove();
     } catch (error) {
-      console.error('Error downloading file:', error);
     }
   };
 

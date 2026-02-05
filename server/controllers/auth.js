@@ -12,15 +12,12 @@ export const requestOTP = async (req, res) => {
   const { email, phone, state } = req.body;
 
   try {
-    console.log('📥 OTP Request received:', { email, phone, state });
     
     const isSouthIndia = SOUTH_INDIAN_STATES.includes(state);
     
     // South India → Email OTP, Others → Phone OTP
     if (isSouthIndia && email) {
-      console.log('📧 Sending Email OTP for South India...');
       const result = await sendEmailOTP(email);
-      console.log('✅ Email OTP result:', result);
       return res.status(200).json({ 
         success: true,
         ...result, 
@@ -30,9 +27,7 @@ export const requestOTP = async (req, res) => {
         ...(process.env.NODE_ENV === 'development' && result.otp && { otp: result.otp })
       });
     } else if (!isSouthIndia && phone) {
-      console.log('📱 Sending Phone OTP for other regions...');
       const result = await sendPhoneOTP(phone);
-      console.log('✅ Phone OTP result:', result);
       return res.status(200).json({ 
         success: true,
         ...result, 
@@ -42,14 +37,12 @@ export const requestOTP = async (req, res) => {
         ...(result.otp && { otp: result.otp })
       });
     } else {
-      console.log('❌ Invalid request - missing email or phone');
       return res.status(400).json({ 
         success: false,
         message: 'Invalid request. Provide email for South India or phone for other regions.' 
       });
     }
   } catch (error) {
-    console.error('❌ Error sending OTP:', error);
     return res.status(500).json({ 
       success: false,
       message: 'Failed to send OTP',
@@ -65,17 +58,24 @@ export const verifyOTPAndLogin = async (req, res) => {
   const { email, phone, otp, name, state } = req.body;
 
   try {
+    
     const identifier = email || phone;
     
     if (!identifier || !otp) {
-      return res.status(400).json({ message: 'Email/Phone and OTP are required' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Email/Phone and OTP are required' 
+      });
     }
 
     // Verify OTP
     const verification = verifyOTP(identifier, otp);
     
     if (!verification.success) {
-      return res.status(400).json({ message: verification.message });
+      return res.status(400).json({ 
+        success: false,
+        message: verification.message 
+      });
     }
 
     // OTP verified, now create/find user
@@ -95,20 +95,23 @@ export const verifyOTPAndLogin = async (req, res) => {
       if (phone) userData.phone = phone;
       
       const newUser = await users.create(userData);
+      
       return res.status(201).json({ 
+        success: true,
         result: newUser,
         message: 'Account created and logged in successfully'
       });
     } else {
       // User exists, log them in
       return res.status(200).json({ 
+        success: true,
         result: existingUser,
         message: 'Logged in successfully'
       });
     }
   } catch (error) {
-    console.error('Error verifying OTP:', error);
     return res.status(500).json({ 
+      success: false,
       message: 'Login failed',
       error: error.message 
     });
@@ -168,7 +171,6 @@ export const firebaseAuth = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error in Firebase auth:', error);
     return res.status(500).json({ 
       message: 'Authentication failed',
       error: error.message 
@@ -182,7 +184,6 @@ export const login = async (req, res) => {
   try {
     // Check if MongoDB is connected
     if (mongoose.connection.readyState !== 1) {
-      console.error("MongoDB is not connected. Please whitelist your IP in MongoDB Atlas.");
       return res.status(503).json({ 
         message: "Database connection unavailable. Please whitelist your IP in MongoDB Atlas.",
         details: "Go to MongoDB Atlas → Network Access → Add IP Address"
@@ -198,7 +199,6 @@ export const login = async (req, res) => {
       return res.status(200).json({ result: existingUser });
     }
   } catch (error) {
-    console.error("Login error:", error);
     return res.status(500).json({ message: "Something went wrong", error: error.message });
   }
 };
@@ -221,7 +221,6 @@ export const updateprofile = async (req, res) => {
     );
     return res.status(201).json(updatedata);
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };

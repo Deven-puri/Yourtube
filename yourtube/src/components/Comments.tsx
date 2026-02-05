@@ -72,7 +72,6 @@ const Comments = ({ videoId }: any) => {
           });
         },
         (error) => {
-          console.log('Location access denied:', error);
         }
       );
     }
@@ -83,7 +82,6 @@ const Comments = ({ videoId }: any) => {
       const res = await axiosInstance.get(`/comment/${videoId}`);
       setComments(res.data);
     } catch (error) {
-      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -128,7 +126,6 @@ const Comments = ({ videoId }: any) => {
       }
       setNewComment("");
     } catch (error: any) {
-      console.error("Error adding comment:", error);
       toast.error(error.response?.data?.message || "Failed to post comment");
     } finally {
       setIsSubmitting(false);
@@ -157,7 +154,6 @@ const Comments = ({ videoId }: any) => {
         setEditText("");
       }
     } catch (error) {
-      console.log(error);
     }
   };
 
@@ -169,7 +165,6 @@ const Comments = ({ videoId }: any) => {
         toast.success("Comment deleted");
       }
     } catch (error) {
-      console.log(error);
       toast.error("Failed to delete comment");
     }
   };
@@ -198,7 +193,6 @@ const Comments = ({ videoId }: any) => {
           : c
       ));
     } catch (error) {
-      console.error("Error liking comment:", error);
       toast.error("Failed to like comment");
     }
   };
@@ -233,7 +227,6 @@ const Comments = ({ videoId }: any) => {
         ));
       }
     } catch (error) {
-      console.error("Error disliking comment:", error);
       toast.error("Failed to dislike comment");
     }
   };
@@ -251,7 +244,6 @@ const Comments = ({ videoId }: any) => {
       
       toast.success(res.data.cached ? "Translation loaded" : "Translated successfully");
     } catch (error) {
-      console.error("Error translating comment:", error);
       toast.error("Translation failed");
     }
   };

@@ -29,16 +29,91 @@ interface VideoGridProps {
 const VideoGrid = ({ peer, peerIndex }: VideoGridProps) => {
   const ref = useRef<HTMLVideoElement>(null);
   const [isStreamActive, setIsStreamActive] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if (peer && peer.peer) {
-      peer.peer.on('stream', (stream: MediaStream) => {
-        if (ref.current) {
-          ref.current.srcObject = stream;
-          setIsStreamActive(true);
+    if (!peer || !peer.peer) return;
+
+    const handleStream = (stream: MediaStream) => {
+      
+      if (ref.current && stream) {
+        // Ensure we're not accidentally using local stream
+        ref.current.srcObject = stream;
+        
+        // Set stream as active immediately when received
+        setIsStreamActive(true);
+        setHasError(false);
+        
+        // Force play to overcome autoplay restrictions
+        ref.current.play().catch(err => {
+        });
+        
+        // Check if video track is enabled
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          
+          // Monitor track state changes
+          videoTrack.onended = () => {
+            setIsStreamActive(false);
+          };
+          
+          videoTrack.onmute = () => {
+          };
+          
+          videoTrack.onunmute = () => {
+          };
+        } else {
         }
-      });
+      }
+    };
+
+    const handleError = (err: Error) => {
+      setHasError(true);
+    };
+
+    const handleTrack = (event: RTCTrackEvent) => {
+      
+      // When a track is added/replaced, update the video element
+      if (event.streams && event.streams[0]) {
+        
+        if (ref.current) {
+          // Important: Always update srcObject when track changes
+          ref.current.srcObject = event.streams[0];
+          
+          // Set stream as active immediately
+          setIsStreamActive(true);
+          setHasError(false);
+          
+          // Force play to ensure video displays
+          ref.current.play().catch(err => {
+          });
+        }
+      }
+    };
+
+    // Check if peer already has a stream
+    if (peer.peer.streams && peer.peer.streams.length > 0) {
+      handleStream(peer.peer.streams[0]);
     }
+
+    // Listen for stream events (initial connection)
+    peer.peer.on('stream', handleStream);
+    peer.peer.on('error', handleError);
+
+    // Listen for track events (screen share, track replacement)
+    if (peer.peer._pc) {
+      peer.peer._pc.addEventListener('track', handleTrack);
+    }
+
+    return () => {
+      if (peer.peer) {
+        peer.peer.off('stream', handleStream);
+        peer.peer.off('error', handleError);
+        if (peer.peer._pc) {
+          peer.peer._pc.removeEventListener('track', handleTrack);
+        }
+      }
+    };
   }, [peer]);
 
   return (
@@ -47,19 +122,31 @@ const VideoGrid = ({ peer, peerIndex }: VideoGridProps) => {
         ref={ref} 
         autoPlay 
         playsInline
+        muted={false}
         className="w-full h-full object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
       <div className="absolute top-3 left-3 bg-purple-500/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-sm font-medium shadow-lg">
-        Participant {peerIndex + 1}
+        {peer.userId ? (peer.userId.split('@')[0].split(/[0-9]/)[0] || `Participant ${peerIndex + 1}`) : `Participant ${peerIndex + 1}`}
       </div>
       {!isStreamActive && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
           <div className="text-center text-white">
-            <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-3 border-2 border-purple-500/50 animate-pulse">
-              <Video className="w-8 h-8 text-purple-400" />
-            </div>
-            <p className="text-sm font-medium">Connecting...</p>
+            {hasError ? (
+              <>
+                <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-3 border-2 border-red-500/50">
+                  <span className="text-3xl">⚠️</span>
+                </div>
+                <p className="text-red-400 text-sm">Connection Failed</p>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-3 border-2 border-purple-500/50 animate-pulse">
+                  <Video className="w-8 h-8 text-purple-400" />
+                </div>
+                <p className="text-sm opacity-70">Connecting...</p>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -207,7 +294,11 @@ export default function VideoCall() {
 
           {/* Remote Videos */}
           {peers.map((peer, index) => (
-            <VideoGrid key={peer.peerID} peer={peer} peerIndex={index} />
+            <VideoGrid 
+              key={`peer-${peer.peerID}-${index}`} 
+              peer={peer} 
+              peerIndex={index} 
+            />
           ))}
         </div>
 

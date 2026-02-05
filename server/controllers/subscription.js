@@ -30,7 +30,6 @@ export const toggleSubscription = async (req, res) => {
       return res.status(200).json({ subscribed: true });
     }
   } catch (error) {
-    console.error("Subscription error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -43,7 +42,6 @@ export const getSubscriberCount = async (req, res) => {
     const count = await subscription.countDocuments({ channel: channelId });
     return res.status(200).json({ count });
   } catch (error) {
-    console.error("Error getting subscriber count:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -62,7 +60,6 @@ export const checkSubscription = async (req, res) => {
       isSubscribed: !!existingSubscription 
     });
   } catch (error) {
-    console.error("Error checking subscription:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -82,7 +79,6 @@ export const getUserSubscriptions = async (req, res) => {
 
     return res.status(200).json(subscriptions);
   } catch (error) {
-    console.error("Error getting subscriptions:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };

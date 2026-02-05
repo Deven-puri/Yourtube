@@ -43,7 +43,6 @@ export const postcomment = async (req, res) => {
     await postcomment.save();
     return res.status(200).json({ comment: true, data: postcomment });
   } catch (error) {
-    console.error("error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -53,7 +52,6 @@ export const getallcomment = async (req, res) => {
     const commentvideo = await comment.find({ videoid: videoid });
     return res.status(200).json(commentvideo);
   } catch (error) {
-    console.error(" error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -66,7 +64,6 @@ export const deletecomment = async (req, res) => {
     await comment.findByIdAndDelete(_id);
     return res.status(200).json({ comment: true });
   } catch (error) {
-    console.error(" error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -91,7 +88,6 @@ export const editcomment = async (req, res) => {
     });
     res.status(200).json(updatecomment);
   } catch (error) {
-    console.error(" error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -125,7 +121,6 @@ export const likecomment = async (req, res) => {
     await commentDoc.save();
     res.status(200).json({ likes: commentDoc.likes.length, dislikes: commentDoc.dislikes.length });
   } catch (error) {
-    console.error("error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -175,7 +170,6 @@ export const dislikecomment = async (req, res) => {
       dislikes: commentDoc.dislikes.length 
     });
   } catch (error) {
-    console.error("error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -224,7 +218,6 @@ export const translatecomment = async (req, res) => {
       detectedSourceLanguage: result.detectedSourceLanguage
     });
   } catch (error) {
-    console.error("error:", error);
     return res.status(500).json({ message: "Translation failed" });
   }
 };

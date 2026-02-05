@@ -24,7 +24,6 @@ export const UserProvider = ({ children }) => {
     try {
       await signOut(auth);
     } catch (error) {
-      console.error("Error during sign out:", error);
     }
   };
   const handlegooglesignin = async () => {
@@ -40,7 +39,6 @@ export const UserProvider = ({ children }) => {
       login(response.data.result);
       return response.data.result; // Return the user data
     } catch (error) {
-      console.error(error);
       throw error; // Throw error so it can be caught in the component
     }
   };
@@ -68,7 +66,6 @@ export const UserProvider = ({ children }) => {
           const response = await axiosInstance.post("/user/login", payload);
           login(response.data.result);
         } catch (error) {
-          console.error(error);
           logout();
         }
       }

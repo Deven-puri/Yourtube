@@ -29,7 +29,6 @@ const SearchResult = ({ query }: any) => {
       );
       setvideos(results);
     } catch (error) {
-      console.error("Error fetching videos:", error);
       setvideos([]);
     } finally {
       setLoading(false);

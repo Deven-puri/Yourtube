@@ -23,7 +23,6 @@ const index = () => {
         setvideo(video[0]);
         setvide(res.data);
       } catch (error) {
-        console.log(error);
       } finally {
         setloading(false);
       }

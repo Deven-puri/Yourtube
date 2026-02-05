@@ -41,7 +41,6 @@ const PremiumPage = () => {
       const response = await axios.get(`/premium/status/${user._id}`);
       setPremiumStatus(response.data);
     } catch (error) {
-      console.error('Error checking premium status:', error);
     }
   };
 
@@ -61,7 +60,6 @@ const PremiumPage = () => {
 
       // If in mock mode, bypass Razorpay and directly verify
       if (mockMode) {
-        console.log('🔧 MOCK MODE: Skipping Razorpay payment flow');
         
         try {
           const verifyResponse = await axios.post('/premium/verify-payment', {
@@ -79,7 +77,6 @@ const PremiumPage = () => {
             alert('Plan activation failed. Please try again.');
           }
         } catch (error) {
-          console.error('Error activating plan:', error);
           alert('Plan activation failed. Please try again.');
         } finally {
           setLoading(false);
@@ -113,7 +110,6 @@ const PremiumPage = () => {
               alert('Payment verification failed. Please contact support.');
             }
           } catch (error) {
-            console.error('Error verifying payment:', error);
             alert('Payment verification failed. Please try again.');
           } finally {
             setLoading(false);
@@ -137,7 +133,6 @@ const PremiumPage = () => {
       razorpay.open();
 
     } catch (error) {
-      console.error('Error creating order:', error);
       alert('Error initiating payment. Please try again.');
       setLoading(false);
     }

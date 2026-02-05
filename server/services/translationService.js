@@ -16,7 +16,6 @@ async function detectLanguage(text) {
     const detectedLang = data[2] || 'en';
     return detectedLang;
   } catch (error) {
-    console.error('Language detection error:', error);
     return 'en'; // Default to English
   }
 }
@@ -51,7 +50,6 @@ async function translateText(text, targetLang = 'en', sourceLang = 'auto') {
       detectedSourceLanguage
     };
   } catch (error) {
-    console.error('Translation error:', error);
     return { translatedText: text, detectedSourceLanguage: 'unknown', error: error.message };
   }
 }
@@ -73,7 +71,6 @@ async function getCityFromCoordinates(latitude, longitude) {
     
     return city;
   } catch (error) {
-    console.error('Geocoding error:', error);
     return 'Unknown';
   }
 }
@@ -87,7 +84,6 @@ async function getCityFromIP(ip) {
     
     return data.city || 'Unknown';
   } catch (error) {
-    console.error('IP geolocation error:', error);
     return 'Unknown';
   }
 }

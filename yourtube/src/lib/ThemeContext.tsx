@@ -32,7 +32,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         window.localStorage.setItem('appTheme', newTheme);
       }
     } catch (error) {
-      console.error('Error updating theme:', error);
       setTheme('dark'); // Default to dark on error
     } finally {
       setIsLoading(false);

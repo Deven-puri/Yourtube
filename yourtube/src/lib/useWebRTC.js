@@ -16,14 +16,28 @@ export const useWebRTC = (roomId, userId) => {
   const screenStreamRef = useRef();
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
+  const hasJoinedRef = useRef(false); // Global ref to prevent duplicate joins across re-renders
 
   // Initialize local media stream
   useEffect(() => {
+    if (!roomId || !userId) return;
+    if (hasJoinedRef.current) {
+      return;
+    }
+    
     const getLocalStream = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 1280, height: 720 },
-          audio: true
+          video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user'
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
         });
         
         userStreamRef.current = stream;
@@ -34,30 +48,46 @@ export const useWebRTC = (roomId, userId) => {
           socket.connect();
         }
         
-        socket.emit('join-room', { roomId, userId });
+        // Only join room once
+        if (!hasJoinedRef.current) {
+          hasJoinedRef.current = true;
+          socket.emit('join-room', { roomId, userId });
+        }
       } catch (error) {
-        console.error('Error accessing media devices:', error);
-        alert('Unable to access camera/microphone. Please grant permissions.');
+        alert('Unable to access camera/microphone. Please grant permissions and reload the page.');
       }
     };
 
     getLocalStream();
 
     return () => {
+      
+      // Reset join flag
+      hasJoinedRef.current = false;
+      
       // Cleanup streams
       if (userStreamRef.current) {
-        userStreamRef.current.getTracks().forEach(track => track.stop());
+        userStreamRef.current.getTracks().forEach(track => {
+          track.stop();
+        });
+        userStreamRef.current = null;
       }
       if (screenStreamRef.current) {
         screenStreamRef.current.getTracks().forEach(track => track.stop());
+        screenStreamRef.current = null;
       }
       
       // Disconnect peers
       peersRef.current.forEach(({ peer }) => {
-        peer.destroy();
+        if (peer && !peer.destroyed) {
+          peer.destroy();
+        }
       });
+      peersRef.current = [];
       
-      socket.disconnect();
+      if (socket.connected) {
+        socket.disconnect();
+      }
     };
   }, [roomId, userId]);
 
@@ -65,72 +95,129 @@ export const useWebRTC = (roomId, userId) => {
   useEffect(() => {
     if (!localStream) return;
 
+
     // When other users are already in the room
-    socket.on('all-users', (users) => {
+    const handleAllUsers = (users) => {
+      
+      // Check if same userId exists (multiple tabs/browsers with same account)
+      const sameUser = users.find(u => u.userId === userId);
+      if (sameUser) {
+      }
+      
       const newPeers = [];
       
       users.forEach(user => {
+        // Check if peer already exists
+        const existingPeer = peersRef.current.find(p => p.peerID === user.socketId);
+        if (existingPeer) {
+          return;
+        }
+        
         const peer = createPeer(user.socketId, socket.id, userStreamRef.current);
         
-        peersRef.current.push({
-          peerID: user.socketId,
-          peer
-        });
-        
-        newPeers.push({
+        const peerData = {
           peerID: user.socketId,
           peer,
           userId: user.userId
-        });
+        };
+        
+        peersRef.current.push(peerData);
+        newPeers.push(peerData);
       });
       
-      setPeers(newPeers);
-    });
+      if (newPeers.length > 0) {
+        setPeers(prevPeers => {
+          // Filter out any existing peers with same IDs to prevent duplicates
+          const filtered = prevPeers.filter(p => 
+            !newPeers.some(np => np.peerID === p.peerID)
+          );
+          return [...filtered, ...newPeers];
+        });
+      }
+    };
 
     // When a new user joins
-    socket.on('user-joined', ({ signal, callerId }) => {
+    const handleUserJoined = ({ signal, callerId, userId }) => {
+      
+      // Check if peer already exists
+      const existingPeer = peersRef.current.find(p => p.peerID === callerId);
+      if (existingPeer) {
+        return;
+      }
+      
       const peer = addPeer(signal, callerId, userStreamRef.current);
       
-      peersRef.current.push({
+      const peerData = {
         peerID: callerId,
-        peer
-      });
+        peer,
+        userId: userId || callerId
+      };
       
-      setPeers(prevPeers => [...prevPeers, {
-        peerID: callerId,
-        peer
-      }]);
-    });
+      peersRef.current.push(peerData);
+      
+      setPeers(prevPeers => {
+        // Check if already in state
+        if (prevPeers.some(p => p.peerID === callerId)) {
+          return prevPeers;
+        }
+        return [...prevPeers, peerData];
+      });
+    };
+
+    socket.on('all-users', handleAllUsers);
+    socket.on('user-joined', handleUserJoined);
 
     // Receiving returned signal
-    socket.on('receiving-returned-signal', ({ signal, id }) => {
+    const handleReturnedSignal = ({ signal, id }) => {
       const item = peersRef.current.find(p => p.peerID === id);
-      if (item) {
-        item.peer.signal(signal);
+      if (item && item.peer) {
+        try {
+          // Check if peer is in correct state before signaling
+          if (!item.peer.destroyed) {
+            item.peer.signal(signal);
+          } else {
+          }
+        } catch (error) {
+        }
       }
-    });
+    };
 
     // User left
-    socket.on('user-left', ({ userId }) => {
+    const handleUserLeft = ({ userId }) => {
       const peerObj = peersRef.current.find(p => p.peerID === userId);
-      if (peerObj) {
+      if (peerObj && peerObj.peer && !peerObj.peer.destroyed) {
         peerObj.peer.destroy();
       }
       
       peersRef.current = peersRef.current.filter(p => p.peerID !== userId);
       setPeers(prevPeers => prevPeers.filter(p => p.peerID !== userId));
+    };
+
+    socket.on('receiving-returned-signal', handleReturnedSignal);
+    socket.on('user-left', handleUserLeft);
+
+    // Handle screen sharing notifications
+    socket.on('user-started-screen-share', ({ userId }) => {
+      // The track update will come through the peer connection automatically
+    });
+
+    socket.on('user-stopped-screen-share', ({ userId }) => {
+      // The track update will come through the peer connection automatically
     });
 
     return () => {
-      socket.off('all-users');
-      socket.off('user-joined');
-      socket.off('receiving-returned-signal');
-      socket.off('user-left');
+      socket.off('all-users', handleAllUsers);
+      socket.off('user-joined', handleUserJoined);
+      socket.off('receiving-returned-signal', handleReturnedSignal);
+      socket.off('user-left', handleUserLeft);
+      socket.off('user-started-screen-share');
+      socket.off('user-stopped-screen-share');
     };
   }, [localStream]);
 
   // Create peer (initiator)
   const createPeer = (userToSignal, callerID, stream) => {
+    
     const peer = new Peer({
       initiator: true,
       trickle: false,
@@ -138,8 +225,22 @@ export const useWebRTC = (roomId, userId) => {
       config: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ]
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:global.stun.twilio.com:3478' },
+          // Add TURN servers for better NAT traversal
+          {
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          {
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          }
+        ],
+        iceCandidatePoolSize: 10
       }
     });
 
@@ -147,11 +248,40 @@ export const useWebRTC = (roomId, userId) => {
       socket.emit('sending-signal', { userToSignal, callerId: callerID, signal });
     });
 
+    peer.on('stream', remoteStream => {
+      if (remoteStream.getVideoTracks().length > 0) {
+        const track = remoteStream.getVideoTracks()[0];
+      }
+    });
+
+    peer.on('connect', () => {
+    });
+
+    peer.on('error', (err) => {
+    });
+
+    peer.on('close', () => {
+    });
+
+    // Monitor ICE connection state
+    if (peer._pc) {
+      peer._pc.oniceconnectionstatechange = () => {
+        if (peer._pc.iceConnectionState === 'disconnected') {
+        }
+        if (peer._pc.iceConnectionState === 'failed') {
+        }
+      };
+      
+      peer._pc.onconnectionstatechange = () => {
+      };
+    }
+
     return peer;
   };
 
   // Add peer (non-initiator)
   const addPeer = (incomingSignal, callerID, stream) => {
+    
     const peer = new Peer({
       initiator: false,
       trickle: false,
@@ -159,8 +289,22 @@ export const useWebRTC = (roomId, userId) => {
       config: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ]
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:global.stun.twilio.com:3478' },
+          // Add TURN servers for better NAT traversal
+          {
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          {
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          }
+        ],
+        iceCandidatePoolSize: 10
       }
     });
 
@@ -168,7 +312,38 @@ export const useWebRTC = (roomId, userId) => {
       socket.emit('returning-signal', { signal, callerSocketId: callerID });
     });
 
-    peer.signal(incomingSignal);
+    peer.on('stream', remoteStream => {
+      if (remoteStream.getVideoTracks().length > 0) {
+        const track = remoteStream.getVideoTracks()[0];
+      }
+    });
+
+    peer.on('connect', () => {
+    });
+
+    peer.on('error', (err) => {
+    });
+
+    peer.on('close', () => {
+    });
+
+    // Monitor ICE connection state
+    if (peer._pc) {
+      peer._pc.oniceconnectionstatechange = () => {
+        if (peer._pc.iceConnectionState === 'disconnected') {
+        }
+        if (peer._pc.iceConnectionState === 'failed') {
+        }
+      };
+      
+      peer._pc.onconnectionstatechange = () => {
+      };
+    }
+
+    try {
+      peer.signal(incomingSignal);
+    } catch (error) {
+    }
 
     return peer;
   };
@@ -200,34 +375,75 @@ export const useWebRTC = (roomId, userId) => {
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
-          cursor: 'always'
+          cursor: 'always',
+          displaySurface: 'monitor',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
         },
-        audio: false
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        }
       });
 
       screenStreamRef.current = screenStream;
       setScreenStream(screenStream);
       setIsScreenSharing(true);
 
-      // Replace video track for all peers
-      const screenTrack = screenStream.getVideoTracks()[0];
+      // Get screen tracks
+      const screenVideoTrack = screenStream.getVideoTracks()[0];
       
-      peersRef.current.forEach(({ peer }) => {
-        const sender = peer._pc.getSenders().find(s => s.track?.kind === 'video');
-        if (sender) {
-          sender.replaceTrack(screenTrack);
+      
+      // Replace tracks for all peers
+      for (const { peer, peerID } of peersRef.current) {
+        if (!peer || !peer._pc) {
+          continue;
         }
-      });
 
-      socket.emit('start-screen-share', { roomId });
+        
+        try {
+          // Get the video sender
+          const senders = peer._pc.getSenders();
+          const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+          
+          if (videoSender && videoSender.track) {
+            const oldLabel = videoSender.track.label;
+            
+            // Replace the track
+            await videoSender.replaceTrack(screenVideoTrack);
+            
+            // Update the stream in peer.streams array
+            if (peer.streams && peer.streams[0]) {
+              const stream = peer.streams[0];
+              // Remove old video track
+              const oldVideoTrack = stream.getVideoTracks()[0];
+              if (oldVideoTrack) {
+                stream.removeTrack(oldVideoTrack);
+              }
+              // Add new screen track
+              stream.addTrack(screenVideoTrack);
+            }
+          } else {
+          }
+        } catch (err) {
+        }
+      }
 
-      // Handle when user stops sharing via browser UI
-      screenTrack.onended = () => {
+      // Notify other users
+      socket.emit('start-screen-share', { roomId, userId });
+
+      // Handle stop
+      screenVideoTrack.onended = () => {
         stopScreenShare();
       };
+      
     } catch (error) {
-      console.error('Error sharing screen:', error);
-      alert('Unable to share screen. Please grant permissions.');
+      if (error.name === 'NotAllowedError') {
+        alert('Screen sharing permission denied.');
+      } else {
+        alert('Unable to share screen. Please try again.');
+      }
     }
   };
 
@@ -237,14 +453,20 @@ export const useWebRTC = (roomId, userId) => {
       screenStreamRef.current.getTracks().forEach(track => track.stop());
       
       // Restore camera video track for all peers
-      const videoTrack = userStreamRef.current.getVideoTracks()[0];
-      
-      peersRef.current.forEach(({ peer }) => {
-        const sender = peer._pc.getSenders().find(s => s.track?.kind === 'video');
-        if (sender) {
-          sender.replaceTrack(videoTrack);
-        }
-      });
+      if (userStreamRef.current) {
+        const videoTrack = userStreamRef.current.getVideoTracks()[0];
+        
+        peersRef.current.forEach(({ peer, peerID }) => {
+          if (peer && peer._pc) {
+            const sender = peer._pc.getSenders().find(s => s.track?.kind === 'video');
+            if (sender && videoTrack) {
+              sender.replaceTrack(videoTrack).then(() => {
+              }).catch(err => {
+              });
+            }
+          }
+        });
+      }
 
       socket.emit('stop-screen-share', { roomId });
       
@@ -301,7 +523,6 @@ export const useWebRTC = (roomId, userId) => {
       mediaRecorderRef.current.start();
       setIsRecording(true);
     } catch (error) {
-      console.error('Error starting recording:', error);
       alert('Unable to start recording');
     }
   };

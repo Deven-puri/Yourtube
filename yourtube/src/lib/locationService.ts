@@ -38,7 +38,6 @@ export const getUserLocation = async (): Promise<LocationData | null> => {
 
     return locationData;
   } catch (error) {
-    console.error('Error fetching location:', error);
     
     // Try to get from localStorage as fallback (only on client side)
     if (typeof window !== 'undefined' && window.localStorage) {

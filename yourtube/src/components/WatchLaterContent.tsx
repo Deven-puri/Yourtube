@@ -34,7 +34,6 @@ export default function WatchLaterContent() {
 
       setWatchLater(watchLaterData.data);
     } catch (error) {
-      console.error("Error loading history:", error);
     } finally {
       setLoading(false);
     }
@@ -45,10 +44,8 @@ export default function WatchLaterContent() {
   }
   const handleRemoveFromWatchLater = async (watchLaterId: string) => {
     try {
-      console.log("Removing from history:", watchLaterId);
       setWatchLater(watchLater.filter((item) => item._id !== watchLaterId));
     } catch (error) {
-      console.error("Error removing from history:", error);
     }
   };
 

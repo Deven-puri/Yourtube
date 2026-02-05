@@ -58,7 +58,6 @@ const VideoInfo = ({ video }: any) => {
       const res = await axiosInstance.get(`/subscription/check/${user._id}/${video.uploader}`);
       setIsSubscribed(res.data.isSubscribed);
     } catch (error) {
-      console.error('Error checking subscription:', error);
     }
   };
 
@@ -68,7 +67,6 @@ const VideoInfo = ({ video }: any) => {
       const res = await axiosInstance.get(`/subscription/count/${video.uploader}`);
       setSubscriberCount(res.data.count);
     } catch (error) {
-      console.error('Error fetching subscriber count:', error);
     }
   };
 
@@ -92,7 +90,6 @@ const VideoInfo = ({ video }: any) => {
       setIsSubscribed(res.data.subscribed);
       setSubscriberCount(prev => res.data.subscribed ? prev + 1 : prev - 1);
     } catch (error: any) {
-      console.error('Error toggling subscription:', error);
       const errorMessage = error.response?.data?.message || 'Error updating subscription. Please try again.';
       alert(errorMessage);
     }
@@ -131,7 +128,6 @@ const VideoInfo = ({ video }: any) => {
       const response = await axiosInstance.get(`/download/check-limit/${user._id}`);
       setDownloadLimit(response.data);
     } catch (error) {
-      console.error('Error checking download limit:', error);
     }
   };
 
@@ -180,7 +176,6 @@ const VideoInfo = ({ video }: any) => {
       } else {
         alert('Error downloading video. Please try again.');
       }
-      console.error('Error downloading video:', error);
     } finally {
       setDownloading(false);
     }
@@ -194,7 +189,6 @@ const VideoInfo = ({ video }: any) => {
             userId: user?._id,
           });
         } catch (error) {
-          return console.log(error);
         }
       } else {
         return await axiosInstance.post(`/history/views/${video?._id}`);
@@ -222,7 +216,6 @@ const VideoInfo = ({ video }: any) => {
         }
       }
     } catch (error) {
-      console.log(error);
     }
   };
   const handleWatchLater = async () => {
@@ -236,7 +229,6 @@ const VideoInfo = ({ video }: any) => {
         setIsWatchLater(false);
       }
     } catch (error) {
-      console.log(error);
     }
   };
   const handleDislike = async () => {
@@ -259,7 +251,6 @@ const VideoInfo = ({ video }: any) => {
         }
       }
     } catch (error) {
-      console.log(error);
     }
   };
   return (

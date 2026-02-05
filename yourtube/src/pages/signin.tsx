@@ -31,13 +31,11 @@ export default function SignIn() {
       try {
         // Try browser geolocation first for more accurate location
         if (navigator.geolocation) {
-          console.log('🌍 Requesting browser geolocation...');
           
           navigator.geolocation.getCurrentPosition(
             async (position) => {
               // Got coordinates, now reverse geocode to get state
               const { latitude, longitude } = position.coords;
-              console.log('📍 Got coordinates:', { latitude, longitude });
               
               try {
                 // Use a geocoding service to convert coordinates to location
@@ -58,7 +56,6 @@ export default function SignIn() {
                 };
                 
                 setLocation(locationData);
-                console.log('✅ Real location detected:', locationData);
                 
                 // Determine auth type
                 const southIndianStates = ['Tamil Nadu', 'Kerala', 'Karnataka', 'Andhra Pradesh', 'Telangana'];
@@ -68,19 +65,15 @@ export default function SignIn() {
                 
                 logThemePreview(locationData);
               } catch (error) {
-                console.error('Geocoding error, falling back to IP:', error);
                 fallbackToIP();
               }
             },
             (error) => {
-              console.log('⚠️ Geolocation permission denied or error:', error.message);
-              console.log('📡 Falling back to IP-based location...');
               fallbackToIP();
             },
             { timeout: 10000 }
           );
         } else {
-          console.log('📡 Browser geolocation not available, using IP...');
           fallbackToIP();
         }
         
@@ -93,13 +86,11 @@ export default function SignIn() {
           const isSouthIndia = southIndianStates.includes(data.state);
           setAuthType(isSouthIndia ? 'email' : 'phone');
           
-          console.log('📍 IP-based location:', data);
           setLoadingLocation(false);
           logThemePreview(data);
         }
         
         function logThemePreview(locationData: any) {
-          console.log('🔐 Auth type:', authType === 'email' ? 'Email OTP' : 'Phone OTP');
           
           const now = new Date();
           const istTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
@@ -108,7 +99,6 @@ export default function SignIn() {
           const southIndianStates = ['Tamil Nadu', 'Kerala', 'Karnataka', 'Andhra Pradesh', 'Telangana'];
           const isSouthIndia = southIndianStates.includes(locationData.state);
           
-          console.log('🎨 Theme Preview:', {
             location: locationData.state,
             isSouthIndia,
             currentTime: istTime.toLocaleTimeString('en-IN'),
@@ -117,7 +107,6 @@ export default function SignIn() {
           });
         }
       } catch (error) {
-        console.error('Location detection error:', error);
         setAuthType('email'); // Default to email
         setLoadingLocation(false);
       }
@@ -159,7 +148,6 @@ export default function SignIn() {
         
         // In development, show OTP in console/toast
         if (response.data.otp) {
-          console.log('🔑 Development OTP:', response.data.otp);
           toast.info(`Dev OTP: ${response.data.otp}`, { duration: 10000 });
         }
       }
@@ -205,7 +193,7 @@ export default function SignIn() {
         {/* Header */}
         <div className="mb-6 text-center sm:mb-8">
           <h1 className="bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
-            YouTube Clone
+            YourTube
           </h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Sign in to continue

@@ -35,7 +35,6 @@ export default function HistoryContent() {
       const historyData = await axiosInstance.get(`/history/${user?._id}`);
       setHistory(historyData.data);
     } catch (error) {
-      console.error("Error loading history:", error);
     } finally {
       setLoading(false);
     }
@@ -46,11 +45,9 @@ export default function HistoryContent() {
 
   const handleRemoveFromHistory = async (historyId: string) => {
     try {
-      console.log("Removing from history:", historyId);
 
       setHistory(history.filter((item) => item._id !== historyId));
     } catch (error) {
-      console.error("Error removing from history:", error);
     }
   };
 

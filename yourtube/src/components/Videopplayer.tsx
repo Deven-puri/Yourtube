@@ -186,7 +186,6 @@ export default function VideoPlayer({ video, relatedVideos = [], onOpenComments 
         }
       }
     } catch (error) {
-      console.error('Error checking watch time:', error);
     }
   };
 
@@ -222,7 +221,6 @@ export default function VideoPlayer({ video, relatedVideos = [], onOpenComments 
             watchedSeconds: 10 // Update every 10 seconds
           });
         } catch (error) {
-          console.error('Error updating watch time:', error);
         }
       }
     }, 10000); // Update every 10 seconds

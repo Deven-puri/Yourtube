@@ -24,7 +24,6 @@ const index = () => {
         const channelVideos = res.data.filter((v: any) => v.uploader === id);
         setVideos(channelVideos);
       } catch (error) {
-        console.error("Error fetching videos:", error);
       } finally {
         setLoading(false);
       }
@@ -49,7 +48,6 @@ const index = () => {
       </div>
     );
   } catch (error) {
-    console.error("Error fetching channel data:", error);
    
   }
 };

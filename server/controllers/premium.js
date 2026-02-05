@@ -22,7 +22,6 @@ export const createPremiumOrder = async (req, res) => {
     try {
         const { userId, plan } = req.body; // plan: Bronze, Silver, Gold
 
-        console.log('Create order request:', { userId, plan });
 
         const user = await User.findById(userId);
         if (!user) {
@@ -42,7 +41,6 @@ export const createPremiumOrder = async (req, res) => {
                            process.env.RAZORPAY_KEY_ID?.includes('sample');
 
         if (isMockMode) {
-            console.log('🔧 MOCK MODE: Using simulated payment (Razorpay not configured)');
             const mockOrderId = `mock_order_${userId}_${Date.now()}`;
             
             return res.status(200).json({
@@ -66,11 +64,9 @@ export const createPremiumOrder = async (req, res) => {
             }
         };
 
-        console.log('Creating Razorpay order with options:', options);
 
         const order = await razorpay.orders.create(options);
 
-        console.log('Razorpay order created:', order.id);
 
         res.status(200).json({
             orderId: order.id,
@@ -80,7 +76,6 @@ export const createPremiumOrder = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error creating Razorpay order:', error);
         res.status(500).json({ message: "Error creating order", error: error.message });
     }
 };
@@ -100,7 +95,6 @@ export const verifyPayment = async (req, res) => {
         const isMockMode = razorpay_order_id?.startsWith('mock_order_');
 
         if (isMockMode) {
-            console.log('🔧 MOCK MODE: Skipping payment verification, activating plan directly');
         } else {
             // Verify signature for real Razorpay payments
             const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -156,7 +150,6 @@ export const verifyPayment = async (req, res) => {
 
         // Send email asynchronously (don't wait for it)
         sendInvoiceEmail(invoiceData).catch(err => 
-            console.error('Failed to send invoice email:', err)
         );
 
         res.status(200).json({

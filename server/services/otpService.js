@@ -33,8 +33,6 @@ async function sendEmailOTP(email) {
   
   // If email credentials are not configured, just log the OTP (development mode)
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-    console.log(`\n📧 EMAIL OTP for ${email}: ${otp}`);
-    console.log(`⏰ Expires in 5 minutes\n`);
     return { success: true, message: 'OTP logged to console (dev mode)', otp };
   }
   
@@ -58,12 +56,9 @@ async function sendEmailOTP(email) {
       `
     });
     
-    console.log(`📧 Email OTP sent to ${email}`);
     return { success: true, message: 'OTP sent to email' };
   } catch (error) {
-    console.error('Email send error:', error);
     // Fallback to console in case of email error
-    console.log(`\n📧 EMAIL OTP for ${email}: ${otp} (Email failed, showing in console)`);
     return { success: true, message: 'OTP logged to console (email failed)', otp };
   }
 }
@@ -77,9 +72,6 @@ async function sendPhoneOTP(phone) {
   otpStore.set(phone, { otp, expiresAt, type: 'phone' });
   
   // Simulate SMS sending (log to console)
-  console.log(`\n📱 PHONE OTP for ${phone}: ${otp}`);
-  console.log(`⏰ Expires in 5 minutes`);
-  console.log(`💡 Note: This is simulated. Integrate Twilio/Firebase for real SMS.\n`);
   
   return { success: true, message: 'OTP sent to phone (simulated)', otp };
 }

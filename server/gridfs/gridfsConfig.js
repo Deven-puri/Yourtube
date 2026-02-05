@@ -9,7 +9,6 @@ export const initGridFS = () => {
   gridfsBucket = new GridFSBucket(db, {
     bucketName: "videos" // Collection name will be videos.files and videos.chunks
   });
-  console.log("✅ GridFS initialized for video storage");
   return gridfsBucket;
 };
 

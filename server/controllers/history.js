@@ -9,7 +9,6 @@ export const handlehistory = async (req, res) => {
     await video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
     return res.status(200).json({ history: true });
   } catch (error) {
-    console.error(" error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -18,7 +17,6 @@ export const handleview = async (req, res) => {
   try {
     await video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
   } catch (error) {
-    console.error(" error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -34,7 +32,6 @@ export const getallhistoryVideo = async (req, res) => {
       .exec();
     return res.status(200).json(historyvideo);
   } catch (error) {
-    console.error(" error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };

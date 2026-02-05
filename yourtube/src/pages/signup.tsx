@@ -29,7 +29,6 @@ export default function SignUpPage() {
         router.push("/");
       }, 100);
     } catch (error) {
-      console.error("Sign in error:", error);
     }
   };
 

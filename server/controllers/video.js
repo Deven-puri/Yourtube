@@ -48,7 +48,6 @@ export const uploadvideo = async (req, res) => {
     readableStream.pipe(uploadStream);
 
     uploadStream.on('error', (error) => {
-      console.error("GridFS upload error:", error);
       return res.status(500).json({ message: "Error uploading video to database" });
     });
 
@@ -68,7 +67,6 @@ export const uploadvideo = async (req, res) => {
 
       await file.save();
       
-      console.log(`✅ Video uploaded to MongoDB: ${filename}`);
       return res.status(201).json({ 
         message: "Video uploaded successfully to MongoDB",
         videoId: file._id,
@@ -77,7 +75,6 @@ export const uploadvideo = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Upload error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -86,7 +83,6 @@ export const getallvideo = async (req, res) => {
     const files = await video.find();
     return res.status(200).send(files);
   } catch (error) {
-    console.error(" error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -147,7 +143,6 @@ export const streamvideo = async (req, res) => {
     }
 
   } catch (error) {
-    console.error("Stream error:", error);
     return res.status(500).json({ message: "Error streaming video" });
   }
 };

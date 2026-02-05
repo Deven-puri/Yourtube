@@ -193,10 +193,8 @@ const sendInvoiceEmail = async (userData) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log('Invoice email sent:', info.messageId);
         return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error('Error sending invoice email:', error);
         return { success: false, error: error.message };
     }
 };
@@ -224,7 +222,6 @@ const sendUpgradeConfirmation = async (userData) => {
         await transporter.sendMail(mailOptions);
         return { success: true };
     } catch (error) {
-        console.error('Error sending upgrade confirmation:', error);
         return { success: false, error: error.message };
     }
 };

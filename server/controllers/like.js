@@ -19,7 +19,6 @@ export const handlelike = async (req, res) => {
       return res.status(200).json({ liked: true });
     }
   } catch (error) {
-    console.error(" error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -36,7 +35,6 @@ export const getallLikedVideo = async (req, res) => {
       .exec();
     return res.status(200).json(likevideo);
   } catch (error) {
-    console.error(" error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
