@@ -1,6 +1,6 @@
 # Video Download & Premium Subscription Feature
 
-This document outlines the implementation of the video download feature with premium subscription system using Razorpay payments.
+This document outlines the implementation of the video download feature with premium subscription system using Razorpay payments
 
 ## Features Implemented
 
