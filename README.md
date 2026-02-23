@@ -1,6 +1,6 @@
 # YouTube Clone with VoIP Video Calling & Premium Downloads
 
-A full-stack YouTube clone built with Next.js, Express, MongoDB, and featuring real-time WebRTC video calling capabilities and premium subscription system.
+A full-stack project built with Next.js, Express, MongoDB, and featuring real-time WebRTC video calling capabilities and premium subscription system.
 
 ## Features
 
